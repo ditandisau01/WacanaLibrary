@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 25;" prefWidth="550.0" prefHeight="530.0" minHeight="530.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="id.ac.ukdw.rplbo.wacanalibrary.controllers.FormPengembalianController">
+
+    <Label text="Proses Pengembalian &amp; Denda" textFill="#2c3e50">
+        <font><Font name="System Bold" size="18.0" /></font>
+    </Label>
+
+    <HBox spacing="10.0">
+        <VBox style="-fx-background-color: #F8F9FA; -fx-border-color: #E0E0E0; -fx-border-radius: 5; -fx-padding: 10;" HBox.hgrow="ALWAYS">
+            <Label text="DATA ANGGOTA" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+            <Label fx:id="lblNamaAnggota" text="Memuat..." textFill="#2c3e50"><font><Font name="System Bold" size="14.0" /></font></Label>
+            <Label fx:id="lblIdAnggota" text="ID: -" textFill="#95a5a6"><font><Font size="12.0" /></font></Label>
+        </VBox>
+        <VBox style="-fx-background-color: #F8F9FA; -fx-border-color: #E0E0E0; -fx-border-radius: 5; -fx-padding: 10;" HBox.hgrow="ALWAYS">
+            <Label text="DATA BUKU" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+            <Label fx:id="lblJudulBuku" text="Memuat..." textFill="#2c3e50"><font><Font name="System Bold" size="14.0" /></font></Label>
+            <Label fx:id="lblIdBuku" text="ID: -" textFill="#95a5a6"><font><Font size="12.0" /></font></Label>
+        </VBox>
+    </HBox>
+
+    <VBox style="-fx-background-color: #F8F9FA; -fx-border-color: #E0E0E0; -fx-border-radius: 5; -fx-padding: 10;">
+        <Label text="Detail Waktu" textFill="#7f8c8d"><font><Font size="12.0" /></font></Label>
+        <HBox spacing="30.0" alignment="CENTER_LEFT">
+            <VBox>
+                <Label text="Tgl Pinjam" textFill="#95a5a6"><font><Font size="11.0" /></font></Label>
+                <Label fx:id="lblTglPinjam" text="-" textFill="#2c3e50"><font><Font name="System Bold" size="13.0" /></font></Label>
+            </VBox>
+            <VBox>
+                <Label text="Tgl Jatuh Tempo" textFill="#95a5a6"><font><Font size="11.0" /></font></Label>
+                <Label fx:id="lblJatuhTempo" text="-" textFill="#1976D2"><font><Font name="System Bold" size="13.0" /></font></Label>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <VBox>
+                <Label text="Tgl Dikembalikan (Simulasi)" textFill="#95a5a6"><font><Font size="11.0" /></font></Label>
+                <DatePicker fx:id="dpTglKembali" prefWidth="130.0"/>
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <Region VBox.vgrow="ALWAYS" />
+
+    <VBox fx:id="boxDenda" spacing="10.0" style="-fx-background-color: #fff5f5; -fx-border-color: #feb2b2; -fx-border-radius: 5; -fx-padding: 15;" managed="false" visible="false">
+        <VBox alignment="CENTER">
+            <Label text="Keterlambatan Terdeteksi" textFill="#c53030"><font><Font name="System Bold" size="14.0" /></font></Label>
+            <Label fx:id="lblTotalDenda" text="Rp 0" textFill="#c53030"><font><Font name="System Bold" size="28.0" /></font></Label>
+            <Label fx:id="lblHariTelat" text="Terlambat: 0 Hari" textFill="#c53030"><font><Font size="12.0" /></font></Label>
+        </VBox>
+
+        <Separator />
+
+        <VBox spacing="5.0">
+            <Label text="METODE PEMBAYARAN" textFill="#718096"><font><Font name="System Bold" size="10.0" /></font></Label>
+            <ComboBox fx:id="cbMetodeBayar" maxWidth="Infinity" promptText="Pilih Metode Pembayaran..." />
+            <Label fx:id="lblInstruksiQris" text="* Silakan cek mutasi e-wallet setelah scan QRIS selesai." textFill="#3182ce" visible="false">
+                <font><Font name="System Italic" size="10.0" /></font>
+            </Label>
+        </VBox>
+    </VBox>
+
+    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+        <padding><Insets top="10.0" /></padding>
+        <Button text="Batal" onAction="#handleBatal" style="-fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-radius: 4; -fx-font-weight: bold;" />
+        <Button text="Selesaikan Pengembalian" onAction="#handleKembalikan" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold;" />
+    </HBox>
+
+</VBox>

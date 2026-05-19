@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox prefWidth="480.0" spacing="15.0" style="-fx-background-color: white; -fx-padding: 25;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="id.ac.ukdw.rplbo.wacanalibrary.controllers.FormTransaksiController">
+
+    <Label text="Proses Peminjaman Baru" textFill="#2c3e50">
+        <font><Font name="System Bold" size="18.0" /></font>
+    </Label>
+
+    <VBox style="-fx-background-color: #E3F2FD; -fx-padding: 10; -fx-background-radius: 5;">
+        <Label text="Anda dapat meminjam beberapa buku sekaligus (Sistem Keranjang)." textFill="#1976D2" wrapText="true" />
+    </VBox>
+
+    <HBox spacing="15.0">
+        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+            <Label text="PILIH ANGGOTA AKTIF" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+            <ComboBox fx:id="cbAnggota" maxWidth="Infinity" promptText="-- Pilih Anggota --" />
+        </VBox>
+        <VBox spacing="5.0">
+            <Label text="TANGGAL PINJAM" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+            <DatePicker fx:id="dpTglPinjam" prefWidth="140.0" />
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5.0">
+        <Label text="PILIH BUKU TERSEDIA" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+        <HBox spacing="10.0">
+            <ComboBox fx:id="cbBuku" maxWidth="Infinity" promptText="-- Pilih Buku --" HBox.hgrow="ALWAYS" />
+            <Button onAction="#handleTambahKeKeranjang" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;" text="Tambah +" />
+        </HBox>
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="KERANJANG PINJAMAN:" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+        <ListView fx:id="listKeranjang" prefHeight="125.0" style="-fx-border-color: #bdc3c7; -fx-background-radius: 3;" />
+        <HBox alignment="CENTER_RIGHT" prefHeight="25.0" prefWidth="0.0">
+            <Button onAction="#handleHapusDariKeranjang" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold;" text="Hapus Buku">
+            <cursor>
+               <Cursor fx:constant="N_RESIZE" />
+            </cursor></Button>
+        </HBox>
+    </VBox>
+
+
+    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+        <padding><Insets top="15.0" /></padding>
+        <Button onAction="#handleBatal" style="-fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-radius: 4; -fx-font-weight: bold" text="Batal" />
+        <Button onAction="#handleSimpan" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold" text="Konfirmasi Peminjaman" />
+    </HBox>
+</VBox>

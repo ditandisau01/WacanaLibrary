@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="15.0" style="-fx-background-color: #F4F6F8; -fx-padding: 20;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="id.ac.ukdw.rplbo.wacanalibrary.controllers.TransaksiController">
+
+    <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <VBox>
+            <Label text="Manajemen Transaksi" textFill="#1a1a1a">
+                <font><Font name="System Bold" size="20.0" /></font>
+            </Label>
+            <Label text="Pantau Peminjaman dan Pengembalian" textFill="#7f8c8d" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="searchField" prefWidth="250.0" promptText="Cari ID Transaksi / Anggota..." style="-fx-background-radius: 5;" />
+        <Button onAction="#bukaFormPeminjaman" style="-fx-background-color: #0056b3; -fx-text-fill: white; -fx-background-radius: 5;" text="→ Proses Peminjaman Baru" />
+    </HBox>
+
+    <TableView fx:id="tabelTransaksi" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+        <columns>
+            <TableColumn fx:id="colIdTransaksi" prefWidth="130.0" text="ID TRANSAKSI" />
+            <TableColumn fx:id="colAnggota" prefWidth="130.0" text="ID ANGGOTA" />
+            <TableColumn fx:id="colBuku" prefWidth="120.0" text="ID BUKU" />
+            <TableColumn fx:id="colTglPinjam" prefWidth="120.0" text="TGL PINJAM" />
+            <TableColumn fx:id="colJatuhTempo" prefWidth="120.0" text="JATUH TEMPO" />
+            <TableColumn fx:id="colStatus" prefWidth="120.0" text="STATUS" />
+
+            <TableColumn fx:id="colMetode" prefWidth="120.0" text="METODE" />
+
+            <TableColumn fx:id="colOperasi" prefWidth="125.0" text="OPERASI" />
+        </columns>
+    </TableView>
+</VBox>

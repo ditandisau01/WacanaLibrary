@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" style="-fx-background-color: #F4F6F8; -fx-padding: 20;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="id.ac.ukdw.rplbo.wacanalibrary.controllers.LaporanController">
+
+    <HBox alignment="CENTER_LEFT">
+        <VBox>
+            <Label text="Dashboard Analitis &amp; Pelaporan" textFill="#1a1a1a">
+                <font><Font name="System Bold" size="20.0" /></font>
+            </Label>
+            <Label text="Laporan kinerja dan distribusi perpustakaan" textFill="#7f8c8d" />
+        </VBox>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button style="-fx-background-color: #1976D2; -fx-text-fill: white; -fx-background-radius: 4;" text="Unduh Excel" />
+    </HBox>
+
+    <HBox spacing="15.0">
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
+            <Label text="AGREGASI DENDA" textFill="#7f8c8d" />
+            <Label fx:id="lblTotalDenda" text="Rp 0" textFill="#c0392b"><font><Font name="System Bold" size="24.0" /></font></Label>
+        </VBox>
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
+            <Label text="RATA-RATA PINJAM" textFill="#7f8c8d" />
+            <Label text="7.0 Hari" textFill="#2c3e50"><font><Font name="System Bold" size="24.0" /></font></Label>
+        </VBox>
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
+            <Label text="TOTAL KATEGORI BUKU" textFill="#7f8c8d" />
+            <Label fx:id="lblTotalKategori" text="0" textFill="#27ae60"><font><Font name="System Bold" size="24.0" /></font></Label>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="15.0" VBox.vgrow="ALWAYS">
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;" HBox.hgrow="ALWAYS" prefWidth="400.0">
+            <Label text="Distribusi Tipe Koleksi Buku" textFill="#2c3e50"><font><Font name="System Bold" size="14.0" /></font></Label>
+            <PieChart fx:id="pieChartKategori" VBox.vgrow="ALWAYS" />
+        </VBox>
+
+        <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;" HBox.hgrow="ALWAYS">
+            <Label text="LOG OPERASIONAL TERAKHIR" textFill="#2c3e50"><font><Font name="System Bold" size="14.0" /></font></Label>
+            <ListView fx:id="listLog" VBox.vgrow="ALWAYS" style="-fx-border-color: transparent;" />
+        </VBox>
+    </HBox>
+</VBox>
