@@ -44,6 +44,11 @@ public class HomepageController {
     // ────────────────────────────────────────────
     @FXML
     public void initialize() {
+        // Cari otomatis setiap kali teks berubah (real-time search)
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            muatBuku(newVal.trim(), activeKategori);
+        });
+
         muatStatistik();
         muatBuku("", "");
     }
@@ -54,9 +59,14 @@ public class HomepageController {
         muatBuku(searchField.getText().trim(), activeKategori);
     }
 
+    // Tombol Reset: bersihkan search field + reset filter ke "Semua"
     @FXML
     private void handleCariButton() {
-        muatBuku(searchField.getText().trim(), activeKategori);
+        searchField.clear();
+        activeKategori = "";
+        setActiveChip(chipSemua);
+        muatBuku("", "");
+        searchField.requestFocus();
     }
 
     // ═══════════════ FILTER CHIPS ═══════════════
