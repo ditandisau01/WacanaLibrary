@@ -77,10 +77,9 @@
                                    style="-fx-background-color: transparent;
                                           -fx-border-color: transparent;
                                           -fx-font-size: 14;
-                                          -fx-padding: 12 12 12 10;"
-                                   onKeyReleased="#handleCari"/>
-                        <Button text="Cari" onAction="#handleCariButton"
-                                style="-fx-background-color: #185FA5;
+                                          -fx-padding: 12 12 12 10;"/>
+                        <Button text="✕ Reset" onAction="#handleCariButton"
+                                style="-fx-background-color: #64748B;
                                        -fx-text-fill: white;
                                        -fx-font-size: 13;
                                        -fx-font-weight: bold;
