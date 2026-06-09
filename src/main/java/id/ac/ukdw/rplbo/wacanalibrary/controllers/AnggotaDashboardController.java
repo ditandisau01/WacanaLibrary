@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 public class AnggotaDashboardController {
 
     @FXML private Label lblSalam;
+    @FXML private Label lblNim;
     @FXML private Label lblTanggal;
     @FXML private Label lblJumlahPinjam;
     @FXML private Label lblStatusTerlambat;
@@ -34,20 +35,41 @@ public class AnggotaDashboardController {
         String nama = AnggotaSession.getNamaAnggota();
         String id   = AnggotaSession.getIdAnggota();
 
-        // Salam & tanggal
         lblSalam.setText("Selamat Datang, " + (nama != null ? nama : "Anggota") + "!");
         lblTanggal.setText(LocalDate.now()
                 .format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy",
                         new java.util.Locale("id", "ID"))));
 
-        // Setup kolom tabel
         colIdTransaksi.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().get(0)));
         colJudulBuku  .setCellValueFactory(d -> new SimpleStringProperty(d.getValue().get(1)));
         colTglPinjam  .setCellValueFactory(d -> new SimpleStringProperty(d.getValue().get(2)));
         colJatuhTempo .setCellValueFactory(d -> new SimpleStringProperty(d.getValue().get(3)));
         colStatusPinjam.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().get(4)));
 
-        if (id != null) muatData(id);
+        if (id != null) {
+            muatDataNIM(id);
+            muatData(id);
+        }
+    }
+
+    // Mengambil data NIM dan langsung menampilkannya berupa angka saja
+    private void muatDataNIM(String idAnggota) {
+        String query = "SELECT nim FROM Anggota WHERE idAnggota = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, idAnggota);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String nim = rs.getString("nim");
+                    // PERBAIKAN: Langsung set text dengan variabel nim tanpa prefix kata-kata
+                    lblNim.setText(nim != null && !nim.isEmpty() ? nim : "-");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            lblNim.setText("-");
+        }
     }
 
     private void muatData(String idAnggota) {
@@ -56,7 +78,6 @@ public class AnggotaDashboardController {
         double totalDenda  = 0;
         ObservableList<ObservableList<String>> rows = FXCollections.observableArrayList();
 
-        // Query: ambil semua transaksi aktif anggota ini beserta buku-bukunya
         String query =
                 "SELECT t.idTransaksi, b.judul, t.tanggalPinjam, t.tanggalJatuhTempo, " +
                         "       t.totalDenda, t.statusTransaksi " +
@@ -76,7 +97,6 @@ public class AnggotaDashboardController {
                     double denda      = rs.getDouble("totalDenda");
                     totalDenda += denda;
 
-                    // Cek terlambat
                     boolean terlambat = false;
                     if (jatuhTempo != null) {
                         LocalDate tgl = LocalDate.parse(jatuhTempo);
@@ -100,7 +120,6 @@ public class AnggotaDashboardController {
             e.printStackTrace();
         }
 
-        // Update label
         lblJumlahPinjam.setText(String.valueOf(jumlahPinjam));
         lblStatusTerlambat.setText(String.valueOf(jumlahTerlambat));
         lblTotalDenda.setText("Rp " + String.format("%,.0f", totalDenda));

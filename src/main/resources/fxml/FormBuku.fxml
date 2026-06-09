@@ -18,6 +18,11 @@
     </VBox>
 
     <VBox spacing="5.0">
+        <Label text="ISBN" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+        <TextField fx:id="txtIsbn" promptText="Masukkan ISBN..." />
+    </VBox>
+
+    <VBox spacing="5.0">
         <Label text="PENULIS" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
         <TextField fx:id="txtPenulis" promptText="Masukkan nama penulis..." />
     </VBox>
@@ -38,6 +43,14 @@
     </HBox>
 
     <VBox spacing="5.0">
+        <Label text="GAMBAR BUKU" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
+        <HBox spacing="10.0">
+            <TextField fx:id="txtGambar" promptText="Pilih file gambar sampul..." editable="false" HBox.hgrow="ALWAYS" style="-fx-background-color: #f9f9f9;" />
+            <Button text="Pilih File" onAction="#handlePilihGambar" style="-fx-cursor: hand;" />
+        </HBox>
+    </VBox>
+
+    <VBox spacing="5.0">
         <Label text="STATUS FISIK" textFill="#7f8c8d"><font><Font size="10.0" /></font></Label>
         <ComboBox fx:id="cbStatus" maxWidth="Infinity" />
         <Label text="Status awal buku baru secara default adalah 'Tersedia'." textFill="#bdc3c7"><font><Font size="10.0" /></font></Label>
@@ -45,8 +58,8 @@
 
     <HBox alignment="CENTER_RIGHT" spacing="10.0">
         <padding><Insets top="15.0" /></padding>
-        <Button text="Batal" onAction="#handleBatal" style="-fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-radius: 4; -fx-font-weight: bold;" />
-        <Button text="Simpan Data" onAction="#handleSimpan" style="-fx-background-color: #0056b3; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold;" />
+        <Button text="Batal" onAction="#handleBatal" style="-fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-radius: 4; -fx-font-weight: bold; -fx-cursor: hand;" />
+        <Button text="Simpan Data" onAction="#handleSimpan" style="-fx-background-color: #0056b3; -fx-text-fill: white; -fx-background-radius: 4; -fx-font-weight: bold; -fx-cursor: hand;" />
     </HBox>
 
 </VBox>

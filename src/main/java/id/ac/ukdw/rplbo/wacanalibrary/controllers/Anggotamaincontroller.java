@@ -27,7 +27,7 @@ public class Anggotamaincontroller {
 
     @FXML
     public void initialize() {
-        // Tampilkan nama anggota dari session
+        // Tarik nama dari AnggotaSession
         String nama = AnggotaSession.getNamaAnggota();
         if (nama != null && !nama.isEmpty()) {
             lblNamaAnggota.setText("Halo, " + nama + "!");
@@ -56,6 +56,7 @@ public class Anggotamaincontroller {
 
     @FXML
     private void handleKeluar() {
+        // Bersihkan data session anggota sebelum menutup aplikasi
         AnggotaSession.clear();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
@@ -66,7 +67,7 @@ public class Anggotamaincontroller {
             loginStage.setScene(new Scene(root));
             loginStage.show();
 
-            // Tutup jendela anggota
+            // Tutup jendela portal anggota saat ini
             Stage current = (Stage) contentArea.getScene().getWindow();
             current.close();
 

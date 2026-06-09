@@ -1,18 +1,24 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
+import id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.BukuDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.TransaksiDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.BukuDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.TransaksiDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.models.Anggota;
+import id.ac.ukdw.rplbo.wacanalibrary.models.Buku;
 import id.ac.ukdw.rplbo.wacanalibrary.models.Transaksi;
-import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
+
 
 public class FormPengembalianController {
 
@@ -26,17 +32,22 @@ public class FormPengembalianController {
     private double totalDendaKalkulasi = 0.0;
     private final double TARIF_DENDA = 1000.0;
 
+    // Instansiasi DAO
+    private final AnggotaDao anggotaDao = new AnggotaDaoImpl();
+    private final BukuDao bukuDao = new BukuDaoImpl();
+    private final TransaksiDao transaksiDao = new TransaksiDaoImpl();
+
     public void setTransaksiData(Transaksi trx) {
         this.transaksiAktif = trx;
 
-        lblIdAnggota.setText("ID: " + trx.idAnggotaProperty().get());
-        lblIdBuku.setText("ID: " + trx.idBukuProperty().get());
-        lblTglPinjam.setText(trx.tanggalPinjamProperty().get().toString());
-        lblJatuhTempo.setText(trx.tanggalJatuhTempoProperty().get().toString());
+        lblIdAnggota.setText("ID: " + trx.getIdAnggota());
+        lblIdBuku.setText("ID: " + trx.getIdBuku());
+        lblTglPinjam.setText(trx.getTanggalPinjam());
+        lblJatuhTempo.setText(trx.getTanggalJatuhTempo());
 
-        muatDetailDariDB(trx.idAnggotaProperty().get(), trx.idBukuProperty().get());
+        // Mengambil detail nama & judul buku menggunakan DAO
+        muatDetailDariDB(trx.getIdAnggota(), trx.getIdBuku());
 
-        // Inisialisasi ComboBox
         cbMetodeBayar.setItems(FXCollections.observableArrayList("Cash", "QRIS"));
         cbMetodeBayar.valueProperty().addListener((obs, oldVal, newVal) -> {
             lblInstruksiQris.setVisible("QRIS".equals(newVal));
@@ -51,7 +62,7 @@ public class FormPengembalianController {
     }
 
     private void hitungDendaInteraktif(LocalDate tanggalDikembalikan) {
-        LocalDate jatuhTempo = transaksiAktif.tanggalJatuhTempoProperty().get();
+        LocalDate jatuhTempo = LocalDate.parse(transaksiAktif.getTanggalJatuhTempo());
         long selisihHari = ChronoUnit.DAYS.between(jatuhTempo, tanggalDikembalikan);
 
         if (selisihHari > 0) {
@@ -68,53 +79,45 @@ public class FormPengembalianController {
     }
 
     private void muatDetailDariDB(String idAnggota, String idBuku) {
-        try (Connection conn = DatabaseHelper.getConnection()) {
-            PreparedStatement pstAnggota = conn.prepareStatement("SELECT namaLengkap FROM Anggota WHERE idAnggota = ?");
-            pstAnggota.setString(1, idAnggota);
-            ResultSet rsA = pstAnggota.executeQuery();
-            if (rsA.next()) lblNamaAnggota.setText(rsA.getString("namaLengkap"));
+        // Bebas dari SQL! Cukup panggil fungsi DAO
+        Anggota anggota = anggotaDao.getAnggotaById(idAnggota);
+        if (anggota != null) {
+            lblNamaAnggota.setText(anggota.namaLengkapProperty().get());
+        }
 
-            PreparedStatement pstBuku = conn.prepareStatement("SELECT judul FROM Buku WHERE idBuku = ?");
-            pstBuku.setString(1, idBuku);
-            ResultSet rsB = pstBuku.executeQuery();
-            if (rsB.next()) lblJudulBuku.setText(rsB.getString("judul"));
-        } catch (Exception e) { e.printStackTrace(); }
+        Buku buku = bukuDao.getBukuById(idBuku);
+        if (buku != null) {
+            lblJudulBuku.setText(buku.judulProperty().get());
+        }
     }
 
     @FXML
     private void handleKembalikan() {
-        // Validasi: Jika ada denda, metode pembayaran wajib dipilih
         if (totalDendaKalkulasi > 0 && cbMetodeBayar.getValue() == null) {
             new Alert(Alert.AlertType.WARNING, "Silakan pilih metode pembayaran denda terlebih dahulu!").showAndWait();
             return;
         }
 
-        try (Connection conn = DatabaseHelper.getConnection()) {
-            // 1. Update Transaksi ke Database
-            String sqlTrx = "UPDATE Transaksi SET statusTransaksi = ?, tanggalKembali = ?, totalDenda = ?, metodePembayaran = ? WHERE idTransaksi = ?";
-            PreparedStatement pstTrx = conn.prepareStatement(sqlTrx);
+        try {
+            // 1. Update Transaksi melalui DAO
+            String statusTrx = totalDendaKalkulasi > 0 ? "Terlambat" : "Selesai";
+            String tglKembali = dpTglKembali.getValue().toString();
+            String metode = totalDendaKalkulasi > 0 ? cbMetodeBayar.getValue() : "-";
 
-            pstTrx.setString(1, totalDendaKalkulasi > 0 ? "Terlambat" : "Selesai");
-            pstTrx.setString(2, dpTglKembali.getValue().toString());
-            pstTrx.setDouble(3, totalDendaKalkulasi);
-            pstTrx.setString(4, totalDendaKalkulasi > 0 ? cbMetodeBayar.getValue() : "-");
-            pstTrx.setString(5, transaksiAktif.idTransaksiProperty().get());
-            pstTrx.executeUpdate();
+            transaksiDao.prosesPengembalian(transaksiAktif.getIdTransaksi(), statusTrx, tglKembali, totalDendaKalkulasi, metode);
 
-            // 2. Kembalikan status buku di Katalog
-            PreparedStatement pstBuku = conn.prepareStatement("UPDATE Buku SET status = 'Tersedia' WHERE idBuku = ?");
-            pstBuku.setString(1, transaksiAktif.idBukuProperty().get());
-            pstBuku.executeUpdate();
+            // 2. Kembalikan status buku di Katalog melalui DAO
+            Buku buku = bukuDao.getBukuById(transaksiAktif.getIdBuku());
+            if (buku != null) {
+                buku.statusProperty().set("Tersedia");
+                bukuDao.updateBuku(buku); // Menyimpan perubahan ke DB
+            }
 
-            // 3. TAMBAHKAN KEMBALI KUOTA PINJAM ANGGOTA (+1)
-            PreparedStatement pstUpdateAnggota = conn.prepareStatement("UPDATE Anggota SET batasPinjam = batasPinjam + 1 WHERE idAnggota = ?");
-            pstUpdateAnggota.setString(1, transaksiAktif.idAnggotaProperty().get());
-            pstUpdateAnggota.executeUpdate();
+            // 3. Tambahkan kembali kuota pinjam anggota (+1) melalui DAO
+            anggotaDao.tambahBatasPinjam(transaksiAktif.getIdAnggota(), 1);
 
-            // 4. Tutup jendela Pop-up
             tutupJendela();
 
-            // 5. Tampilkan Notifikasi Sukses
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Pengembalian Berhasil");
             alert.setHeaderText(null);

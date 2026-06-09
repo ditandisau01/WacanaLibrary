@@ -10,7 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*; // Import digabung untuk kemudahan
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -25,9 +25,8 @@ public class AnggotaController {
     @FXML private TextField searchField;
     @FXML private TableView<Anggota> tabelAnggota;
 
-    // Perhatikan tambahan colOperasi di sini dengan tipe <Anggota, Void>
     @FXML private TableColumn<Anggota, Void> colOperasi;
-    @FXML private TableColumn<Anggota, String> colId, colNama, colTipe, colStatus;
+    @FXML private TableColumn<Anggota, String> colId, colNim, colNama, colTipe, colStatus;
     @FXML private TableColumn<Anggota, Number> colBatas;
 
     private ObservableList<Anggota> anggotaList = FXCollections.observableArrayList();
@@ -35,6 +34,11 @@ public class AnggotaController {
     @FXML
     public void initialize() {
         colId.setCellValueFactory(cellData -> cellData.getValue().idAnggotaProperty());
+
+        if (colNim != null) {
+            colNim.setCellValueFactory(cellData -> cellData.getValue().nimProperty());
+        }
+
         colNama.setCellValueFactory(cellData -> cellData.getValue().namaLengkapProperty());
         colTipe.setCellValueFactory(cellData -> cellData.getValue().tipeProperty());
         colBatas.setCellValueFactory(cellData -> cellData.getValue().batasPinjamProperty());
@@ -53,10 +57,9 @@ public class AnggotaController {
 
         loadData();
         setupPencarianDinamis();
-        setupKolomOperasi(); // Panggil fungsi pembuatan tombol operasi
+        setupKolomOperasi();
     }
 
-    // ... (Fungsi loadData() dan setupPencarianDinamis() TETAP SAMA seperti kode Anda sebelumnya) ...
     private void loadData() {
         anggotaList.clear();
         String query = "SELECT * FROM Anggota";
@@ -65,8 +68,10 @@ public class AnggotaController {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
+                // Pemanggilan constructor disesuaikan menjadi 7 argumen (tanpa username)
                 anggotaList.add(new Anggota(
                         rs.getString("idAnggota"),
+                        rs.getString("nim"),
                         rs.getString("namaLengkap"),
                         rs.getString("tipe"),
                         rs.getInt("batasPinjam"),
@@ -87,6 +92,7 @@ public class AnggotaController {
                 String lowerCaseFilter = newValue.toLowerCase();
 
                 if (anggota.namaLengkapProperty().get().toLowerCase().contains(lowerCaseFilter)) return true;
+                else if (anggota.nimProperty().get() != null && anggota.nimProperty().get().toLowerCase().contains(lowerCaseFilter)) return true;
                 else if (anggota.idAnggotaProperty().get().toLowerCase().contains(lowerCaseFilter)) return true;
                 else if (anggota.tipeProperty().get().toLowerCase().contains(lowerCaseFilter)) return true;
                 else if (String.valueOf(anggota.batasPinjamProperty().get()).contains(lowerCaseFilter)) return true;
@@ -101,17 +107,14 @@ public class AnggotaController {
 
     @FXML
     private void bukaFormTambahAnggota() {
-        bukaForm(null); // Kirim null karena ini mode Tambah Data
+        bukaForm(null);
     }
-
-    // --- LOGIKA BARU UNTUK TOMBOL EDIT DAN HAPUS ---
 
     private void setupKolomOperasi() {
         Callback<TableColumn<Anggota, Void>, TableCell<Anggota, Void>> cellFactory = new Callback<>() {
             @Override
             public TableCell<Anggota, Void> call(final TableColumn<Anggota, Void> param) {
                 return new TableCell<>() {
-                    // Membuat tombol Edit (Biru) dan Hapus (Merah)
                     private final Button btnEdit = new Button("Edit");
                     private final Button btnHapus = new Button("Hapus");
                     private final HBox pane = new HBox(5, btnEdit, btnHapus);
@@ -120,13 +123,11 @@ public class AnggotaController {
                         btnEdit.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
                         btnHapus.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
 
-                        // Aksi tombol Edit
                         btnEdit.setOnAction(event -> {
                             Anggota data = getTableView().getItems().get(getIndex());
-                            bukaForm(data); // Kirim data anggota yang dipilih ke form
+                            bukaForm(data);
                         });
 
-                        // Aksi tombol Hapus
                         btnHapus.setOnAction(event -> {
                             Anggota data = getTableView().getItems().get(getIndex());
                             hapusDataAnggota(data);
@@ -145,7 +146,6 @@ public class AnggotaController {
         colOperasi.setCellFactory(cellFactory);
     }
 
-    // Fungsi tunggal untuk membuka Form (Bisa mode Tambah atau Edit)
     private void bukaForm(Anggota anggotaEdit) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/FormAnggota.fxml"));
@@ -153,7 +153,6 @@ public class AnggotaController {
 
             FormAnggotaController controller = loader.getController();
 
-            // Jika ada data anggota yang dikirim, masuk ke mode Edit
             if (anggotaEdit != null) {
                 controller.setEditData(anggotaEdit);
             }
@@ -163,14 +162,13 @@ public class AnggotaController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(new Scene(root));
             stage.showAndWait();
-            loadData(); // Segarkan tabel setelah pop-up ditutup
+            loadData();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // Fungsi untuk menghapus data dari SQLite
     private void hapusDataAnggota(Anggota anggota) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Konfirmasi Hapus");
@@ -183,7 +181,7 @@ public class AnggotaController {
                      PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Anggota WHERE idAnggota = ?")) {
                     pstmt.setString(1, anggota.idAnggotaProperty().get());
                     pstmt.executeUpdate();
-                    loadData(); // Segarkan tabel
+                    loadData();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

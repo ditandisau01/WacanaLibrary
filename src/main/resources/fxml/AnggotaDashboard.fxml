@@ -13,6 +13,9 @@
         <Label fx:id="lblSalam" text="Selamat Datang!" textFill="#1B2A4A">
             <font><Font name="System Bold" size="24.0"/></font>
         </Label>
+        <Label fx:id="lblNim" text="-" textFill="#546E7A">
+            <font><Font name="System Bold" size="14.0"/></font>
+        </Label>
         <Label fx:id="lblTanggal" text="" textFill="#78909C">
             <font><Font size="13.0"/></font>
         </Label>

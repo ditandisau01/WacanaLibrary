@@ -1,5 +1,6 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
+import id.ac.ukdw.rplbo.wacanalibrary.utils.AnggotaSession;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,58 +9,41 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.sql.*;
 
 public class LoginController {
 
-    @FXML private TextField     txtUsername;
+    @FXML private TextField txtUsername; // Digunakan sebagai NIM atau Username Admin
     @FXML private PasswordField txtPassword;
-    @FXML private Label         lblError;
+    @FXML private Label lblError;
 
-    // ── LOGIN ADMIN ───────────────────────────────────────────────
     @FXML
-    private void handleLoginAdmin() {
-        String username = txtUsername.getText().trim();
+    private void handleLogin() {
+        String inputId = txtUsername.getText().trim();
         String password = txtPassword.getText();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            tampilkanError("Username dan Password tidak boleh kosong!");
+        if (inputId.isEmpty() || password.isEmpty()) {
+            tampilkanError("NIM/Identitas dan Password tidak boleh kosong!");
             return;
         }
-        if (validasiAdmin(username, password)) {
-            bukaDashboardAdmin();
-        } else {
-            tampilkanError("Username atau password salah!");
+
+        // 1. Validasi Admin (Langsung masuk tanpa session)
+        if (validasiAdmin(inputId, password)) {
+            bukaDashboard("/fxml/MainLayout.fxml", "Wacana Library - Dashboard Operasional");
+            return;
         }
+
+        // 2. Validasi Anggota berdasarkan NIM
+        if (validasiAnggota(inputId, password)) {
+            bukaDashboard("/fxml/AnggotaMainLayout.fxml", "Wacana Library - Portal Anggota");
+            return;
+        }
+
+        tampilkanError("NIM atau password salah!");
     }
 
-    // ── MASUK SEBAGAI ANGGOTA (tanpa login, pilih nama) ──────────
-    @FXML
-    private void handleMasukAnggota() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/PilihAnggota.fxml"));
-            Parent root = loader.load();
-
-            Stage dialog = new Stage();
-            dialog.setTitle("Pilih Akun Anggota");
-            dialog.setScene(new Scene(root));
-            dialog.initModality(Modality.APPLICATION_MODAL);
-
-            // Tutup login saat dialog ditutup setelah berhasil masuk
-            dialog.showAndWait();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            tampilkanError("Gagal membuka daftar anggota.");
-        }
-    }
-
-    // ── HELPERS ───────────────────────────────────────────────────
     private boolean validasiAdmin(String username, String password) {
         String query = "SELECT 1 FROM Pegawai WHERE username = ? AND password = ?";
         try (Connection conn = DatabaseHelper.getConnection();
@@ -71,28 +55,44 @@ public class LoginController {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
-    private void bukaDashboardAdmin() {
+    private boolean validasiAnggota(String inputId, String password) {
+        // Hapus "OR username = ?" menjadi hanya cek NIM
+        String query = "SELECT idAnggota, namaLengkap, status FROM Anggota WHERE nim = ? AND password = ?";
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, inputId);
+            ps.setString(2, password);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    if (rs.getString("status").equalsIgnoreCase("Tidak Aktif")) {
+                        tampilkanError("Akun anggota Anda sedang dinonaktifkan.");
+                        return false;
+                    }
+                    AnggotaSession.setAnggota(rs.getString("idAnggota"), rs.getString("namaLengkap"));
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void bukaDashboard(String fxml, String title) {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/MainLayout.fxml"));
-            Parent root = loader.load();
-
             Stage mainStage = new Stage();
-            mainStage.setTitle("Wacana Library - Dashboard Operasional");
-            mainStage.setScene(new Scene(root));
-            mainStage.show();
+            mainStage.setTitle(title);
+            mainStage.setScene(new Scene(FXMLLoader.load(getClass().getResource(fxml))));
             mainStage.setMaximized(true);
-
-            Stage loginStage = (Stage) txtUsername.getScene().getWindow();
-            loginStage.close();
-
+            mainStage.show();
+            ((Stage) txtUsername.getScene().getWindow()).close();
         } catch (IOException e) {
             e.printStackTrace();
-            tampilkanError("Gagal membuka dashboard: " + e.getMessage());
+            tampilkanError("Terjadi kesalahan memuat dashboard.");
         }
     }
 
