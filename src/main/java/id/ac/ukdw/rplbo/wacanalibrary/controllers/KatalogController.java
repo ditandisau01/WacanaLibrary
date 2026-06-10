@@ -22,37 +22,42 @@ import java.sql.*;
 
 public class KatalogController {
 
-    @FXML private TextField searchField;
-    @FXML private TableView<Buku> tabelBuku;
-
-    // TAMBAHAN: Kolom Gambar
-    @FXML private TableColumn<Buku, String> colGambar;
-    @FXML private TableColumn<Buku, Void> colOperasi;
-    @FXML private TableColumn<Buku, String> colId, colIsbn, colJudul, colPengarang, colKategori, colStatus;
-    @FXML private TableColumn<Buku, Number> colTahun, colHalaman;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private TableView<Buku> tabelBuku;
+    @FXML
+    private TableColumn<Buku, String> colGambar;
+    @FXML
+    private TableColumn<Buku, Void> colOperasi;
+    @FXML
+    private TableColumn<Buku, String> colId, colIsbn, colJudul, colPengarang, colKategori, colStatus;
+    @FXML
+    private TableColumn<Buku, Number> colTahun, colHalaman;
 
     private ObservableList<Buku> bukuList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
         colId.setCellValueFactory(cellData -> cellData.getValue().idBukuProperty());
-        if(colIsbn != null) colIsbn.setCellValueFactory(cellData -> cellData.getValue().isbnProperty());
+        if (colIsbn != null)
+            colIsbn.setCellValueFactory(cellData -> cellData.getValue().isbnProperty());
         colJudul.setCellValueFactory(cellData -> cellData.getValue().judulProperty());
         colPengarang.setCellValueFactory(cellData -> cellData.getValue().pengarangProperty());
         colKategori.setCellValueFactory(cellData -> cellData.getValue().kategoriProperty());
         colTahun.setCellValueFactory(cellData -> cellData.getValue().tahunTerbitProperty());
-        if(colHalaman != null) colHalaman.setCellValueFactory(cellData -> cellData.getValue().halamanProperty());
+
+        if (colHalaman != null)
+            colHalaman.setCellValueFactory(cellData -> cellData.getValue().halamanProperty());
         colStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
 
-        // RENDER GAMBAR KE DALAM TABEL
-        if(colGambar != null) {
+        if (colGambar != null) {
             colGambar.setCellValueFactory(cellData -> cellData.getValue().gambarProperty());
             colGambar.setCellFactory(column -> new TableCell<Buku, String>() {
                 private final ImageView imageView = new ImageView();
                 {
                     imageView.setFitWidth(40);
                     imageView.setFitHeight(60);
-                    // Agar gambar rapi di dalam sel tanpa gepeng
                     imageView.setPreserveRatio(true);
                 }
 
@@ -74,15 +79,27 @@ public class KatalogController {
             });
         }
 
-        // Peringatan Warna Status
+        // Warna Statu Buku
         tabelBuku.setRowFactory(tv -> new TableRow<Buku>() {
             @Override
             protected void updateItem(Buku item, boolean empty) {
                 super.updateItem(item, empty);
-                if (item == null || empty) setStyle("");
-                else if (item.getStatus().equalsIgnoreCase("Rusak")) setStyle("-fx-background-color: #ffcccc;");
-                else if (item.getStatus().equalsIgnoreCase("Dipinjam")) setStyle("-fx-background-color: #fff3cd;");
-                else setStyle("-fx-background-color: #d4edda;");
+                if (item == null || empty)
+                    setStyle("");
+                else if (item.getStatus().equalsIgnoreCase("Rusak"))
+                    setStyle("-fx-background-color: #ffcccc;");
+                else if (item.getStatus().equalsIgnoreCase("Dipinjam"))
+                    setStyle("-fx-background-color: #fff3cd;");
+                else
+                    setStyle("-fx-background-color: #d4edda;");
+
+            }
+        });
+
+        tabelBuku.setStyle("-fx-selection-bar: transparent; -fx-selection-bar-text: -fx-text-background-color;");
+        tabelBuku.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.intValue() != -1) {
+                javafx.application.Platform.runLater(() -> tabelBuku.getSelectionModel().clearSelection());
             }
         });
 
@@ -95,24 +112,27 @@ public class KatalogController {
         bukuList.clear();
         String query = "SELECT * FROM Buku";
         try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
                 bukuList.add(new Buku(
                         rs.getString("idBuku"), rs.getString("isbn"), rs.getString("judul"),
                         rs.getString("pengarang"), rs.getString("tipe"), rs.getString("kategori"),
-                        rs.getInt("tahunTerbit"), rs.getInt("halaman"), rs.getString("gambar"), rs.getString("status")
-                ));
+                        rs.getInt("tahunTerbit"), rs.getInt("halaman"), rs.getString("gambar"),
+                        rs.getString("status")));
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupPencarianDinamis() {
         FilteredList<Buku> filteredData = new FilteredList<>(bukuList, b -> true);
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(buku -> {
-                if (newValue == null || newValue.isEmpty()) return true;
+                if (newValue == null || newValue.isEmpty())
+                    return true;
                 String lower = newValue.toLowerCase();
                 return buku.judulProperty().get().toLowerCase().contains(lower) ||
                         (buku.getIsbn() != null && buku.getIsbn().toLowerCase().contains(lower)) ||
@@ -125,7 +145,10 @@ public class KatalogController {
         tabelBuku.setItems(sortedData);
     }
 
-    @FXML private void bukaFormTambah() { bukaForm(null); }
+    @FXML
+    private void bukaFormTambah() {
+        bukaForm(null);
+    }
 
     private void setupKolomOperasi() {
         colOperasi.setCellFactory(param -> new TableCell<Buku, Void>() {
@@ -133,12 +156,16 @@ public class KatalogController {
             private final Button btnHapus = new Button("Hapus");
             private final HBox pane = new HBox(5, btnEdit, btnHapus);
             {
-                btnEdit.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
-                btnHapus.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
+                btnEdit.setStyle(
+                        "-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
+                btnHapus.setStyle(
+                        "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
                 btnEdit.setOnAction(e -> bukaForm(getTableView().getItems().get(getIndex())));
                 btnHapus.setOnAction(e -> hapusDataBuku(getTableView().getItems().get(getIndex())));
             }
-            @Override protected void updateItem(Void item, boolean empty) {
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 setGraphic(empty ? null : pane);
             }
@@ -160,15 +187,18 @@ public class KatalogController {
 
             stage.showAndWait();
             loadDataFromDatabase();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void hapusDataBuku(Buku buku) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Hapus Buku: " + buku.judulProperty().get() + "?", ButtonType.OK, ButtonType.CANCEL);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Hapus Buku: " + buku.judulProperty().get() + "?",
+                ButtonType.OK, ButtonType.CANCEL);
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try (Connection conn = DatabaseHelper.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Buku WHERE idBuku = ?")) {
+                        PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Buku WHERE idBuku = ?")) {
                     pstmt.setString(1, buku.idBukuProperty().get());
                     pstmt.executeUpdate();
                     loadDataFromDatabase();
