@@ -15,11 +15,16 @@ import java.util.Random;
 
 public class RegisterController {
 
-    @FXML private TextField txtNama, txtNim, txtIdAnggota, txtPasswordVisible;
-    @FXML private PasswordField txtPasswordHidden;
-    @FXML private Button btnTogglePass;
-    @FXML private ComboBox<String> cbTipe;
-    @FXML private Label lblError, lblSuccess;
+    @FXML
+    private TextField txtNama, txtNim, txtIdAnggota, txtPasswordVisible;
+    @FXML
+    private PasswordField txtPasswordHidden;
+    @FXML
+    private Button btnTogglePass;
+    @FXML
+    private ComboBox<String> cbTipe;
+    @FXML
+    private Label lblError, lblSuccess;
 
     @FXML
     public void initialize() {
@@ -66,7 +71,6 @@ public class RegisterController {
     private void handleDaftar() {
         String nama = txtNama.getText().trim();
         String nim = txtNim.getText().trim();
-        // Ambil password yang aktif
         String pass = txtPasswordHidden.isVisible() ? txtPasswordHidden.getText() : txtPasswordVisible.getText();
         String id = txtIdAnggota.getText().trim();
         String tipe = cbTipe.getValue();
@@ -78,14 +82,17 @@ public class RegisterController {
             return;
         }
 
-        int batasPinjam = switch (tipe) { case "Dosen" -> 10; case "Staff" -> 7; case "Umum" -> 3; default -> 5; };
+        int batasPinjam = switch (tipe) {
+            case "Dosen" -> 10;
+            case "Staff" -> 7;
+            case "Umum" -> 3;
+            default -> 5;
+        };
         String tanggal = LocalDate.now().toString();
-
-        // Query INSERT disesuaikan (tanpa kolom username)
         String query = "INSERT INTO Anggota (idAnggota, nim, namaLengkap, password, tipe, batasPinjam, aktifSejak, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Aktif')";
 
         try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, id);
             ps.setString(2, nim);
             ps.setString(3, nama);
@@ -96,8 +103,10 @@ public class RegisterController {
             ps.executeUpdate();
 
             tampilkanSukses("Pendaftaran berhasil! Silakan login menggunakan NIM.");
-            txtNama.clear(); txtNim.clear();
-            txtPasswordHidden.clear(); txtPasswordVisible.clear();
+            txtNama.clear();
+            txtNim.clear();
+            txtPasswordHidden.clear();
+            txtPasswordVisible.clear();
             txtIdAnggota.setText(generateId());
 
         } catch (SQLException e) {
@@ -119,10 +128,31 @@ public class RegisterController {
             loginStage.setResizable(false);
             ((Stage) txtNama.getScene().getWindow()).close();
             loginStage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void tampilkanError(String pesan) { lblError.setText(pesan); lblError.setVisible(true); lblError.setManaged(true); lblSuccess.setVisible(false); lblSuccess.setManaged(false); }
-    private void tampilkanSukses(String pesan) { lblSuccess.setText(pesan); lblSuccess.setVisible(true); lblSuccess.setManaged(true); lblError.setVisible(false); lblError.setManaged(false); }
-    private void sembunyikanPesan() { lblError.setVisible(false); lblError.setManaged(false); lblSuccess.setVisible(false); lblSuccess.setManaged(false); }
+    private void tampilkanError(String pesan) {
+        lblError.setText(pesan);
+        lblError.setVisible(true);
+        lblError.setManaged(true);
+        lblSuccess.setVisible(false);
+        lblSuccess.setManaged(false);
+    }
+
+    private void tampilkanSukses(String pesan) {
+        lblSuccess.setText(pesan);
+        lblSuccess.setVisible(true);
+        lblSuccess.setManaged(true);
+        lblError.setVisible(false);
+        lblError.setManaged(false);
+    }
+
+    private void sembunyikanPesan() {
+        lblError.setVisible(false);
+        lblError.setManaged(false);
+        lblSuccess.setVisible(false);
+        lblSuccess.setManaged(false);
+    }
 }
