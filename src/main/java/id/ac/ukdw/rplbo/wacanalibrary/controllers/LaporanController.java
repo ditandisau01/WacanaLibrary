@@ -1,5 +1,9 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
+import id.ac.ukdw.rplbo.wacanalibrary.dao.BukuDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.BukuDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.TransaksiDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.TransaksiDaoImpl;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +17,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class LaporanController {
+
+    private final BukuDao bukuDao = new BukuDaoImpl();
+    private final TransaksiDao transaksiDao = new TransaksiDaoImpl();
 
     @FXML private Label lblTotalDenda, lblTotalKategori;
     @FXML private PieChart pieChartKategori;
@@ -31,15 +38,9 @@ public class LaporanController {
     }
 
     private void loadMetrik() {
-        try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            ResultSet rsDenda = stmt.executeQuery("SELECT SUM(totalDenda) AS denda FROM Transaksi");
-            if (rsDenda.next()) lblTotalDenda.setText("Rp " + rsDenda.getInt("denda"));
-
-            ResultSet rsKategori = stmt.executeQuery("SELECT COUNT(DISTINCT kategori) AS totalKat FROM Buku");
-            if (rsKategori.next()) lblTotalKategori.setText(String.valueOf(rsKategori.getInt("totalKat")));
-
+        try {
+            lblTotalDenda.setText("Rp " + (int) transaksiDao.getTotalDenda());
+            lblTotalKategori.setText(String.valueOf(bukuDao.countUniqueKategori()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,33 +48,27 @@ public class LaporanController {
 
     private void loadPieChart() {
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-
-        String query = "SELECT kategori, COUNT(*) AS jumlah FROM Buku GROUP BY kategori";
-        try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
-                pieChartData.add(new PieChart.Data(
-                        rs.getString("kategori"),
-                        rs.getInt("jumlah")
-                ));
+ 
+        try {
+            java.util.Map<String, Integer> map = bukuDao.getBukuCountPerKategori();
+            for (java.util.Map.Entry<String, Integer> entry : map.entrySet()) {
+                pieChartData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
             }
-
+ 
             pieChartKategori.setData(pieChartData);
-
+ 
             // PERBAIKAN: Menghitung persentase dan memodifikasi label potongan pie chart
             double total = 0;
             for (PieChart.Data data : pieChartKategori.getData()) {
                 total += data.getPieValue();
             }
-
+ 
             for (PieChart.Data data : pieChartKategori.getData()) {
                 double persentase = (data.getPieValue() / total) * 100;
                 String labelBaru = String.format("%s (%.1f%%)", data.getName(), persentase);
                 data.setName(labelBaru);
             }
-
+ 
         } catch (Exception e) {
             e.printStackTrace();
         }
