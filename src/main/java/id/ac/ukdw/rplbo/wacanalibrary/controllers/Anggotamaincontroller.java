@@ -14,25 +14,26 @@ import java.io.IOException;
 
 public class Anggotamaincontroller {
 
-    @FXML private StackPane contentArea;
-    @FXML private Label     lblNamaAnggota;
-    @FXML private Button    btnDashboard;
-    @FXML private Button    btnKatalog;
-    @FXML private Button    btnRiwayat;
+    @FXML
+    private StackPane contentArea;
+    @FXML
+    private Label lblNamaAnggota;
+    @FXML
+    private Button btnDashboard;
+    @FXML
+    private Button btnKatalog;
+    @FXML
+    private Button btnRiwayat;
 
-    private static final String STYLE_AKTIF =
-            "-fx-background-color: #2E4070; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 12 15;";
-    private static final String STYLE_NONAKTIF =
-            "-fx-background-color: transparent; -fx-text-fill: #B0BEC5; -fx-background-radius: 6; -fx-padding: 12 15;";
+    private static final String STYLE_AKTIF = "-fx-background-color: #2E4070; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 12 15;";
+    private static final String STYLE_NONAKTIF = "-fx-background-color: transparent; -fx-text-fill: #B0BEC5; -fx-background-radius: 6; -fx-padding: 12 15;";
 
     @FXML
     public void initialize() {
-        // Tarik nama dari AnggotaSession
         String nama = AnggotaSession.getNamaAnggota();
         if (nama != null && !nama.isEmpty()) {
             lblNamaAnggota.setText("Halo, " + nama + "!");
         }
-        // Default tampilkan dashboard
         showDashboard();
     }
 
@@ -56,7 +57,6 @@ public class Anggotamaincontroller {
 
     @FXML
     private void handleKeluar() {
-        // Bersihkan data session anggota sebelum menutup aplikasi
         AnggotaSession.clear();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
@@ -67,7 +67,6 @@ public class Anggotamaincontroller {
             loginStage.setScene(new Scene(root));
             loginStage.show();
 
-            // Tutup jendela portal anggota saat ini
             Stage current = (Stage) contentArea.getScene().getWindow();
             current.close();
 
@@ -76,7 +75,7 @@ public class Anggotamaincontroller {
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────
+    // Helpers
 
     private void muatHalaman(String fxmlPath) {
         try {
@@ -88,7 +87,6 @@ public class Anggotamaincontroller {
         }
     }
 
-    /** Ubah style tombol sidebar: aktif vs nonaktif */
     private void setAktif(Button aktif) {
         btnDashboard.setStyle(STYLE_NONAKTIF);
         btnKatalog.setStyle(STYLE_NONAKTIF);
