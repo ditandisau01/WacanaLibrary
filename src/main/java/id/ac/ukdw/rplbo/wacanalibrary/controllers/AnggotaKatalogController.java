@@ -1,7 +1,10 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
-import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.AnggotaSession;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.BukuDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.BukuDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.models.Buku;
+import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AnggotaKatalogController {
+
+    private final BukuDao bukuDao = new BukuDaoImpl();
 
     @FXML private TextField searchField;
     @FXML private FlowPane  bookGrid;
@@ -35,54 +40,28 @@ public class AnggotaKatalogController {
 
     private void muatBuku(String keyword) {
         bookGrid.getChildren().clear();
-        List<String[]> bukuList = new ArrayList<>();
+        List<Buku> bukuList;
 
-        String query = "SELECT idBuku, isbn, judul, pengarang, kategori, tahunTerbit, halaman, gambar, status " +
-                "FROM Buku WHERE judul LIKE ? OR pengarang LIKE ? OR kategori LIKE ? OR isbn LIKE ? ORDER BY judul ASC";
-
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-
-            String like = "%" + keyword + "%";
-            ps.setString(1, like);
-            ps.setString(2, like);
-            ps.setString(3, like);
-            ps.setString(4, like);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    bukuList.add(new String[]{
-                            rs.getString("idBuku"),      // 0
-                            rs.getString("isbn"),        // 1
-                            rs.getString("judul"),       // 2
-                            rs.getString("pengarang"),   // 3
-                            rs.getString("kategori"),    // 4
-                            String.valueOf(rs.getInt("tahunTerbit")), // 5
-                            String.valueOf(rs.getInt("halaman")),     // 6
-                            rs.getString("gambar"),      // 7
-                            rs.getString("status")       // 8
-                    });
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (keyword.isEmpty()) {
+            bukuList = bukuDao.getAllBuku();
+        } else {
+            bukuList = bukuDao.cariBuku(keyword);
         }
 
-        for (String[] buku : bukuList) {
+        for (Buku buku : bukuList) {
             bookGrid.getChildren().add(buatKartuBuku(buku));
         }
     }
 
-    private VBox buatKartuBuku(String[] buku) {
-        String isbn        = buku[1];
-        String judul       = buku[2];
-        String pengarang   = buku[3];
-        String kategori    = buku[4];
-        String tahun       = buku[5];
-        String gambarPath  = buku[7];
-        String dbStatus    = buku[8];
+    private VBox buatKartuBuku(Buku buku) {
+        String isbn        = buku.isbnProperty().get();
+        String judul       = buku.judulProperty().get();
+        String pengarang   = buku.pengarangProperty().get();
+        String kategori    = buku.kategoriProperty().get();
+        String tahun       = String.valueOf(buku.tahunTerbitProperty().get());
+        String gambarPath  = buku.gambarProperty().get();
+        String dbStatus    = buku.statusProperty().get();
 
-        // LOGIKA PENYEDERHANAAN STATUS UNTUK ANGGOTA
         boolean tersedia = "Tersedia".equalsIgnoreCase(dbStatus);
         String labelStatusTampil = tersedia ? "Tersedia" : "Tidak Tersedia";
 
@@ -96,7 +75,6 @@ public class AnggotaKatalogController {
         cover.setMinHeight(250);
         cover.setStyle("-fx-background-color: " + coverColor(kategori) + "; -fx-background-radius: 10 10 0 0;");
 
-        // PROSES RENDER GAMBAR
         if (gambarPath != null && !gambarPath.trim().isEmpty()) {
             File imgFile = new File(gambarPath);
             if (imgFile.exists()) {
@@ -117,8 +95,6 @@ public class AnggotaKatalogController {
                 cover.getChildren().add(imgRegion);
             }
         }
-
-        // LENCANA (BADGE) DI KANAN ATAS SUDAH DIHAPUS SEPENUHNYA
 
         VBox info = new VBox(4);
         info.setPadding(new Insets(10, 12, 12, 12));
