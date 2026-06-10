@@ -1,5 +1,11 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
+import id.ac.ukdw.rplbo.wacanalibrary.dao.BukuDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.BukuDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.TransaksiDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.TransaksiDaoImpl;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -15,8 +21,14 @@ import java.sql.Statement;
 
 public class DashboardController {
 
-    @FXML private Label lblBukuAktif, lblPeminjaman, lblAnggota, lblDenda;
-    @FXML private BarChart<String, Number> barChartPeminjaman;
+    private final BukuDao bukuDao = new BukuDaoImpl();
+    private final AnggotaDao anggotaDao = new AnggotaDaoImpl();
+    private final TransaksiDao transaksiDao = new TransaksiDaoImpl();
+
+    @FXML
+    private Label lblBukuAktif, lblPeminjaman, lblAnggota, lblDenda;
+    @FXML
+    private BarChart<String, Number> barChartPeminjaman;
 
     @FXML
     public void initialize() {
@@ -29,22 +41,13 @@ public class DashboardController {
     }
 
     private void loadMetrikSummary() {
-        try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            ResultSet rsBuku = stmt.executeQuery("SELECT COUNT(*) AS total FROM Buku WHERE status != 'Rusak'");
-            if (rsBuku.next()) lblBukuAktif.setText(String.valueOf(rsBuku.getInt("total")));
-
-            ResultSet rsAnggota = stmt.executeQuery("SELECT COUNT(*) AS total FROM Anggota WHERE status = 'Aktif'");
-            if (rsAnggota.next()) lblAnggota.setText(String.valueOf(rsAnggota.getInt("total")));
-
-            ResultSet rsDenda = stmt.executeQuery("SELECT SUM(totalDenda) AS total FROM Transaksi");
-            if (rsDenda.next()) lblDenda.setText("Rp " + rsDenda.getInt("total"));
+        try {
+            lblBukuAktif.setText(String.valueOf(bukuDao.countBukuNonRusak()));
+            lblAnggota.setText(String.valueOf(anggotaDao.countAnggotaAktif()));
+            lblDenda.setText("Rp " + (int) transaksiDao.getTotalDenda());
 
             String today = java.time.LocalDate.now().toString();
-            ResultSet rsToday = stmt.executeQuery("SELECT COUNT(*) AS total FROM Transaksi WHERE tanggalPinjam = '" + today + "'");
-            if (rsToday.next()) lblPeminjaman.setText(String.valueOf(rsToday.getInt("total")));
-
+            lblPeminjaman.setText(String.valueOf(transaksiDao.countTransaksiByTanggal(today)));
         } catch (Exception e) {
             System.err.println("Gagal memuat metrik: " + e.getMessage());
         }
@@ -56,26 +59,13 @@ public class DashboardController {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Volume Peminjaman 2026");
 
-        String[] namaBulan = {"Jan", "Feb", "Mar", "Apr", "Mei", "Jun"};
+        String[] namaBulan = { "Jan", "Feb", "Mar", "Apr", "Mei", "Jun" };
         int[] jumlahPeminjaman = new int[6];
 
-        String query = "SELECT strftime('%m', tanggalPinjam) AS bulan, COUNT(*) AS jumlah " +
-                "FROM Transaksi " +
-                "WHERE strftime('%Y', tanggalPinjam) = '2026' " +
-                "GROUP BY bulan";
-
-        try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
-                String bulanStr = rs.getString("bulan");
-                if (bulanStr != null) {
-                    int bulanInt = Integer.parseInt(bulanStr);
-                    if (bulanInt >= 1 && bulanInt <= 6) {
-                        jumlahPeminjaman[bulanInt - 1] = rs.getInt("jumlah");
-                    }
-                }
+        try {
+            java.util.Map<Integer, Integer> map = transaksiDao.getPeminjamanPerBulan("2026");
+            for (int i = 1; i <= 6; i++) {
+                jumlahPeminjaman[i - 1] = map.getOrDefault(i, 0);
             }
         } catch (Exception e) {
             System.err.println("Database transaksi belum memiliki data/tabel valid: " + e.getMessage());
@@ -87,14 +77,14 @@ public class DashboardController {
 
         barChartPeminjaman.getData().add(series);
 
-        // PERBAIKAN: Gunakan Platform.runLater agar Tooltip pasti menempel setelah grafik di-render di layar
         Platform.runLater(() -> {
             for (XYChart.Data<String, Number> data : series.getData()) {
                 if (data.getNode() != null) {
                     String tooltipText = data.getXValue() + "\nPeminjaman : " + data.getYValue();
                     Tooltip tooltip = new Tooltip(tooltipText);
 
-                    tooltip.setStyle("-fx-background-color: white; -fx-text-fill: #2c3e50; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);");
+                    tooltip.setStyle(
+                            "-fx-background-color: white; -fx-text-fill: #2c3e50; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);");
                     tooltip.setShowDelay(Duration.millis(100));
 
                     Tooltip.install(data.getNode(), tooltip);
