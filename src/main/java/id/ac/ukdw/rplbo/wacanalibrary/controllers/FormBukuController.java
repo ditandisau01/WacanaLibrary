@@ -1,6 +1,8 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
 import id.ac.ukdw.rplbo.wacanalibrary.models.Buku;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.BukuDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.BukuDaoImpl;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -16,6 +18,9 @@ import java.util.UUID;
 
 public class FormBukuController {
 
+    private final BukuDao bukuDao = new BukuDaoImpl();
+    private Buku bukuEdit;
+
     @FXML private TextField txtJudul, txtIsbn, txtPenulis, txtTahun, txtHalaman, txtGambar;
     @FXML private ComboBox<String> cbKategori, cbStatus;
 
@@ -24,7 +29,6 @@ public class FormBukuController {
 
     @FXML
     public void initialize() {
-        // PERBAIKAN: Disinkronkan dengan kategori pada HomepageController
         cbKategori.setItems(FXCollections.observableArrayList(
                 "Karya Umum / Referensi",
                 "Ilmu Murni / Sains",
@@ -41,6 +45,7 @@ public class FormBukuController {
 
     public void setEditData(Buku buku) {
         this.isEditMode = true;
+        this.bukuEdit = buku;
         this.idBukuEdit = buku.idBukuProperty().get();
 
         txtJudul.setText(buku.judulProperty().get());
@@ -69,39 +74,38 @@ public class FormBukuController {
 
     @FXML
     private void handleSimpan() {
-        try (Connection conn = DatabaseHelper.getConnection()) {
-            PreparedStatement pstmt;
-
+        try {
             if (isEditMode) {
-                String query = "UPDATE Buku SET isbn = ?, judul = ?, pengarang = ?, kategori = ?, tahunTerbit = ?, halaman = ?, gambar = ?, status = ? WHERE idBuku = ?";
-                pstmt = conn.prepareStatement(query);
-                pstmt.setString(1, txtIsbn.getText());
-                pstmt.setString(2, txtJudul.getText());
-                pstmt.setString(3, txtPenulis.getText());
-                pstmt.setString(4, cbKategori.getValue());
-                pstmt.setInt(5, Integer.parseInt(txtTahun.getText()));
-                pstmt.setInt(6, Integer.parseInt(txtHalaman.getText()));
-                pstmt.setString(7, txtGambar.getText());
-                pstmt.setString(8, cbStatus.getValue());
-                pstmt.setString(9, idBukuEdit);
+                Buku buku = new Buku(
+                        idBukuEdit,
+                        txtIsbn.getText(),
+                        txtJudul.getText(),
+                        txtPenulis.getText(),
+                        bukuEdit.tipeProperty().get(),
+                        cbKategori.getValue(),
+                        Integer.parseInt(txtTahun.getText()),
+                        Integer.parseInt(txtHalaman.getText()),
+                        txtGambar.getText(),
+                        cbStatus.getValue()
+                );
+                bukuDao.updateBuku(buku);
             } else {
                 String idBuku = "B-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-                String query = "INSERT INTO Buku (idBuku, isbn, judul, pengarang, tipe, kategori, tahunTerbit, halaman, gambar, status) VALUES (?, ?, ?, ?, 'Buku', ?, ?, ?, ?, ?)";
-                pstmt = conn.prepareStatement(query);
-                pstmt.setString(1, idBuku);
-                pstmt.setString(2, txtIsbn.getText());
-                pstmt.setString(3, txtJudul.getText());
-                pstmt.setString(4, txtPenulis.getText());
-                pstmt.setString(5, cbKategori.getValue());
-                pstmt.setInt(6, Integer.parseInt(txtTahun.getText()));
-                pstmt.setInt(7, Integer.parseInt(txtHalaman.getText()));
-                pstmt.setString(8, txtGambar.getText());
-                pstmt.setString(9, cbStatus.getValue());
+                Buku buku = new Buku(
+                        idBuku,
+                        txtIsbn.getText(),
+                        txtJudul.getText(),
+                        txtPenulis.getText(),
+                        "Buku",
+                        cbKategori.getValue(),
+                        Integer.parseInt(txtTahun.getText()),
+                        Integer.parseInt(txtHalaman.getText()),
+                        txtGambar.getText(),
+                        cbStatus.getValue()
+                );
+                bukuDao.tambahBuku(buku);
             }
-
-            pstmt.executeUpdate();
             tutupJendela();
-
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Gagal menyimpan data buku. Pastikan form diisi dengan benar.");
