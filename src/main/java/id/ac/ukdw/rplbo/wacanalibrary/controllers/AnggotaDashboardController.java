@@ -1,6 +1,9 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
 import id.ac.ukdw.rplbo.wacanalibrary.utils.AnggotaSession;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl;
+import id.ac.ukdw.rplbo.wacanalibrary.models.Anggota;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +18,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class AnggotaDashboardController {
+
+    private final AnggotaDao anggotaDao = new AnggotaDaoImpl();
 
     @FXML private Label lblSalam;
     @FXML private Label lblNim;
@@ -52,22 +57,12 @@ public class AnggotaDashboardController {
         }
     }
 
-    // Mengambil data NIM dan langsung menampilkannya berupa angka saja
+    // Mengambil dan Menampilkan NIM
     private void muatDataNIM(String idAnggota) {
-        String query = "SELECT nim FROM Anggota WHERE idAnggota = ?";
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-
-            ps.setString(1, idAnggota);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String nim = rs.getString("nim");
-                    // PERBAIKAN: Langsung set text dengan variabel nim tanpa prefix kata-kata
-                    lblNim.setText(nim != null && !nim.isEmpty() ? nim : "-");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        Anggota anggota = anggotaDao.getAnggotaById(idAnggota);
+        if (anggota != null) {
+            lblNim.setText(anggota.nimProperty().get());
+        } else {
             lblNim.setText("-");
         }
     }
