@@ -13,13 +13,14 @@ import java.io.IOException;
 
 public class MainController {
 
-    @FXML private StackPane contentArea;
-    @FXML private Button btnDashboard, btnAnggota, btnKatalog, btnTransaksi, btnLaporan, btnKeluar;
+    @FXML
+    private StackPane contentArea;
+    @FXML
+    private Button btnDashboard, btnAnggota, btnKatalog, btnTransaksi, btnLaporan, btnKeluar;
 
-    private final String IDLE_STYLE =
-            "-fx-background-color: transparent; -fx-text-fill: #B0BEC5; -fx-background-radius: 6; -fx-padding: 12 15;";
-    private final String ACTIVE_STYLE =
-            "-fx-background-color: #2E4070; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 12 15;";
+    private final String IDLE_STYLE = "-fx-background-color: transparent; -fx-text-fill: #B0BEC5; -fx-background-radius: 6; -fx-padding: 12 15;";
+    private final String ACTIVE_STYLE = "-fx-background-color: #2E4070; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 12 15;";
+
     @FXML
     public void initialize() {
         // Menampilkan Dashboard sebagai halaman default saat login berhasil
@@ -27,14 +28,14 @@ public class MainController {
     }
 
     private void setActiveButton(Button activeButton) {
-        // Reset semua tombol ke style default
+        // Style default
         btnDashboard.setStyle(IDLE_STYLE);
         btnAnggota.setStyle(IDLE_STYLE);
         btnKatalog.setStyle(IDLE_STYLE);
         btnTransaksi.setStyle(IDLE_STYLE);
         btnLaporan.setStyle(IDLE_STYLE);
 
-        // Beri style aktif ke tombol yang diklik
+        // Style aktif ke tombol yang diklik
         activeButton.setStyle(ACTIVE_STYLE);
     }
 
@@ -59,19 +60,18 @@ public class MainController {
     @FXML
     private void showTransaksi() {
         setActiveButton(btnTransaksi);
-        loadView("/fxml/Transaksi.fxml"); // Hapus tanda komentar di baris ini
+        loadView("/fxml/Transaksi.fxml");
     }
 
     @FXML
     private void showLaporan() {
         setActiveButton(btnLaporan);
-        loadView("/fxml/Laporan.fxml"); // Hapus tanda komentar di baris ini
+        loadView("/fxml/Laporan.fxml");
     }
 
     @FXML
     private void handleLogout() {
         try {
-            // Tutup stage utama
             Stage stage = (Stage) btnKeluar.getScene().getWindow();
             stage.close();
 
