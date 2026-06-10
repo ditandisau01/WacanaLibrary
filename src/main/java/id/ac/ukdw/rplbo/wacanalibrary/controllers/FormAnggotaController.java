@@ -1,6 +1,8 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
 import id.ac.ukdw.rplbo.wacanalibrary.models.Anggota;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -13,6 +15,9 @@ import java.sql.PreparedStatement;
 import java.util.UUID;
 
 public class FormAnggotaController {
+
+    private final AnggotaDao anggotaDao = new AnggotaDaoImpl();
+    private Anggota anggotaEdit;
 
     @FXML private TextField txtNama;
     @FXML private ComboBox<String> cbTipe, cbStatus;
@@ -27,12 +32,11 @@ public class FormAnggotaController {
         cbStatus.setValue("Aktif");
     }
 
-    // Fungsi baru ini akan dipanggil oleh AnggotaController saat tombol Edit ditekan
     public void setEditData(Anggota anggota) {
         this.isEditMode = true;
+        this.anggotaEdit = anggota;
         this.idAnggotaEdit = anggota.idAnggotaProperty().get();
 
-        // Isi textfield dan combobox dengan data yang sudah ada
         txtNama.setText(anggota.namaLengkapProperty().get());
         cbTipe.setValue(anggota.tipeProperty().get());
         cbStatus.setValue(anggota.statusProperty().get());
@@ -44,36 +48,36 @@ public class FormAnggotaController {
         if (cbTipe.getValue() != null && cbTipe.getValue().equals("Dosen")) batasPinjam = 10;
         else if (cbTipe.getValue() != null && cbTipe.getValue().equals("Staff")) batasPinjam = 10;
 
-        try (Connection conn = DatabaseHelper.getConnection()) {
-            PreparedStatement pstmt;
-
+        try {
             if (isEditMode) {
-                // Kueri UPDATE untuk mode Edit
-                String query = "UPDATE Anggota SET namaLengkap = ?, tipe = ?, batasPinjam = ?, status = ? WHERE idAnggota = ?";
-                pstmt = conn.prepareStatement(query);
-                pstmt.setString(1, txtNama.getText());
-                pstmt.setString(2, cbTipe.getValue());
-                pstmt.setInt(3, batasPinjam);
-                pstmt.setString(4, cbStatus.getValue());
-                pstmt.setString(5, idAnggotaEdit);
+                Anggota anggota = new Anggota(
+                        idAnggotaEdit,
+                        anggotaEdit.nimProperty().get(),
+                        txtNama.getText(),
+                        anggotaEdit.passwordProperty().get(),
+                        cbTipe.getValue(),
+                        batasPinjam,
+                        anggotaEdit.aktifSejakProperty().get(),
+                        cbStatus.getValue()
+                );
+                anggotaDao.updateAnggota(anggota);
             } else {
-                // Kueri INSERT untuk mode Tambah Baru
                 String idAnggota = "LIB-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
                 String tanggalSekarang = java.time.LocalDate.now().toString();
 
-                String query = "INSERT INTO Anggota (idAnggota, namaLengkap, tipe, batasPinjam, aktifSejak, status) VALUES (?, ?, ?, ?, ?, ?)";
-                pstmt = conn.prepareStatement(query);
-                pstmt.setString(1, idAnggota);
-                pstmt.setString(2, txtNama.getText());
-                pstmt.setString(3, cbTipe.getValue());
-                pstmt.setInt(4, batasPinjam);
-                pstmt.setString(5, tanggalSekarang);
-                pstmt.setString(6, cbStatus.getValue());
+                Anggota anggota = new Anggota(
+                        idAnggota,
+                        null,
+                        txtNama.getText(),
+                        null,
+                        cbTipe.getValue(),
+                        batasPinjam,
+                        tanggalSekarang,
+                        cbStatus.getValue()
+                );
+                anggotaDao.tambahAnggota(anggota);
             }
-
-            pstmt.executeUpdate();
             tutupJendela();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
