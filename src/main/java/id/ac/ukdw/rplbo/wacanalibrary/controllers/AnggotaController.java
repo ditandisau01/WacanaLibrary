@@ -1,6 +1,8 @@
 package id.ac.ukdw.rplbo.wacanalibrary.controllers;
 
 import id.ac.ukdw.rplbo.wacanalibrary.models.Anggota;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao;
+import id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl;
 import id.ac.ukdw.rplbo.wacanalibrary.utils.DatabaseHelper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +24,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class AnggotaController {
+
+    private final AnggotaDao anggotaDao = new AnggotaDaoImpl();
+
     @FXML private TextField searchField;
     @FXML private TableView<Anggota> tabelAnggota;
 
@@ -55,6 +60,14 @@ public class AnggotaController {
             }
         });
 
+        // Disable visual selection highlight and clear selection
+        tabelAnggota.setStyle("-fx-selection-bar: transparent; -fx-selection-bar-text: -fx-text-background-color;");
+        tabelAnggota.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.intValue() != -1) {
+                javafx.application.Platform.runLater(() -> tabelAnggota.getSelectionModel().clearSelection());
+            }
+        });
+
         loadData();
         setupPencarianDinamis();
         setupKolomOperasi();
@@ -62,26 +75,7 @@ public class AnggotaController {
 
     private void loadData() {
         anggotaList.clear();
-        String query = "SELECT * FROM Anggota";
-        try (Connection conn = DatabaseHelper.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
-                // Pemanggilan constructor disesuaikan menjadi 7 argumen (tanpa username)
-                anggotaList.add(new Anggota(
-                        rs.getString("idAnggota"),
-                        rs.getString("nim"),
-                        rs.getString("namaLengkap"),
-                        rs.getString("tipe"),
-                        rs.getInt("batasPinjam"),
-                        rs.getString("aktifSejak"),
-                        rs.getString("status")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        anggotaList.addAll(anggotaDao.getAllAnggota());
     }
 
     private void setupPencarianDinamis() {
@@ -177,10 +171,8 @@ public class AnggotaController {
 
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try (Connection conn = DatabaseHelper.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("DELETE FROM Anggota WHERE idAnggota = ?")) {
-                    pstmt.setString(1, anggota.idAnggotaProperty().get());
-                    pstmt.executeUpdate();
+                try {
+                    anggotaDao.hapusAnggota(anggota.idAnggotaProperty().get());
                     loadData();
                 } catch (Exception e) {
                     e.printStackTrace();
