@@ -19,14 +19,17 @@ import javafx.util.Callback;
 import java.time.LocalDate;
 
 public class TransaksiController {
-    @FXML private TextField searchField;
-    @FXML private TableView<Transaksi> tabelTransaksi;
-    @FXML private TableColumn<Transaksi, String> colIdTransaksi, colAnggota, colBuku, colTglPinjam, colJatuhTempo, colStatus, colMetode;
-    @FXML private TableColumn<Transaksi, Void> colOperasi;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private TableView<Transaksi> tabelTransaksi;
+    @FXML
+    private TableColumn<Transaksi, String> colIdTransaksi, colAnggota, colBuku, colTglPinjam, colJatuhTempo, colStatus,
+            colMetode;
+    @FXML
+    private TableColumn<Transaksi, Void> colOperasi;
 
     private ObservableList<Transaksi> transaksiList = FXCollections.observableArrayList();
-
-    // 1. Instansiasi DAO di level class
     private final TransaksiDao transaksiDao = new TransaksiDaoImpl();
 
     @FXML
@@ -48,23 +51,37 @@ public class TransaksiController {
                 } else {
                     String status = item.getStatusTransaksi();
                     if (status.equalsIgnoreCase("Terlambat")) {
-                        setStyle("-fx-background-color: #ffcccc;"); // Merah
+                        setStyle("-fx-background-color: #ffcccc;");
                     } else if (status.equalsIgnoreCase("Selesai")) {
-                        setStyle("-fx-background-color: #d4edda;"); // Hijau
+                        setStyle("-fx-background-color: #d4edda;");
                     } else if (status.equalsIgnoreCase("Berjalan")) {
                         String tglJatuhTempoStr = item.getTanggalJatuhTempo();
                         try {
-                            if (tglJatuhTempoStr != null && !tglJatuhTempoStr.isEmpty() && !tglJatuhTempoStr.equals("-")) {
+                            if (tglJatuhTempoStr != null && !tglJatuhTempoStr.isEmpty()
+                                    && !tglJatuhTempoStr.equals("-")) {
                                 LocalDate jt = LocalDate.parse(tglJatuhTempoStr);
                                 if (jt.isBefore(LocalDate.now())) {
-                                    setStyle("-fx-background-color: #ffeeba;"); // Kuning
+                                    setStyle("-fx-background-color: #ffeeba;");
                                 } else {
                                     setStyle("");
                                 }
-                            } else { setStyle(""); }
-                        } catch (Exception e) { setStyle(""); }
-                    } else { setStyle(""); }
+                            } else {
+                                setStyle("");
+                            }
+                        } catch (Exception e) {
+                            setStyle("");
+                        }
+                    } else {
+                        setStyle("");
+                    }
                 }
+            }
+        });
+
+        tabelTransaksi.setStyle("-fx-selection-bar: transparent; -fx-selection-bar-text: -fx-text-background-color;");
+        tabelTransaksi.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.intValue() != -1) {
+                javafx.application.Platform.runLater(() -> tabelTransaksi.getSelectionModel().clearSelection());
             }
         });
 
@@ -74,7 +91,6 @@ public class TransaksiController {
     }
 
     private void loadData() {
-        // 2. Ganti blok SQL dengan pemanggilan DAO (Sangat bersih!)
         transaksiList.clear();
         transaksiList.addAll(transaksiDao.getAllTransaksi());
     }
@@ -83,7 +99,8 @@ public class TransaksiController {
         FilteredList<Transaksi> filteredData = new FilteredList<>(transaksiList, b -> true);
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(trx -> {
-                if (newValue == null || newValue.isEmpty()) return true;
+                if (newValue == null || newValue.isEmpty())
+                    return true;
                 String filter = newValue.toLowerCase();
                 return trx.getIdTransaksi().toLowerCase().contains(filter) ||
                         trx.getIdAnggota().toLowerCase().contains(filter) ||
@@ -104,7 +121,8 @@ public class TransaksiController {
                 return new TableCell<>() {
                     private final Button btnKembali = new Button("Kembalikan");
                     {
-                        btnKembali.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
+                        btnKembali.setStyle(
+                                "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 4;");
                         btnKembali.setOnAction(event -> {
                             Transaksi trx = getTableView().getItems().get(getIndex());
                             prosesPengembalianBuku(trx);
@@ -125,7 +143,9 @@ public class TransaksiController {
                                 } else {
                                     setGraphic(btnKembali);
                                 }
-                            } else { setGraphic(null); }
+                            } else {
+                                setGraphic(null);
+                            }
                         }
                     }
                 };
@@ -144,8 +164,10 @@ public class TransaksiController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(new Scene(root));
             stage.showAndWait();
-            loadData(); // Memanggil DAO lagi secara otomatis
-        } catch (Exception e) { e.printStackTrace(); }
+            loadData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void prosesPengembalianBuku(Transaksi trx) {
