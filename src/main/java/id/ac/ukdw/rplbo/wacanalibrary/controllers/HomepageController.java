@@ -23,12 +23,17 @@ import java.util.List;
 
 public class HomepageController {
 
-    @FXML private TextField searchField;
-    @FXML private FlowPane  bookGrid;
-    @FXML private VBox      emptyState;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private FlowPane bookGrid;
+    @FXML
+    private VBox emptyState;
 
-    @FXML private Label lblJumlahHasil;
-    @FXML private Button chipSemua, chipSastra, chipSains, chipTeknologi, chipSejarah, chipBahasa;
+    @FXML
+    private Label lblJumlahHasil;
+    @FXML
+    private Button chipSemua, chipSastra, chipSains, chipTeknologi, chipSejarah, chipBahasa;
 
     private String activeKategori = "";
 
@@ -52,13 +57,14 @@ public class HomepageController {
                     muatBuku(searchField.getText().trim(), activeKategori);
                 });
             } catch (Exception e) {
-                // Mengabaikan potensi null jika scene ditutup terlalu cepat
             }
         });
     }
 
     @FXML
-    private void handleCari() { muatBuku(searchField.getText().trim(), activeKategori); }
+    private void handleCari() {
+        muatBuku(searchField.getText().trim(), activeKategori);
+    }
 
     @FXML
     private void handleCariButton() {
@@ -85,8 +91,8 @@ public class HomepageController {
     }
 
     private void setActiveChip(Button active) {
-        String inactiveStyle = "-fx-background-color: white; -fx-text-fill: #64748B; -fx-border-color: #CBD5E1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-font-size: 13; -fx-padding: 8 20; -fx-cursor: hand;";
-        String activeStyle = "-fx-background-color: #185FA5; -fx-text-fill: white; -fx-background-radius: 999; -fx-font-size: 13; -fx-padding: 8 20; -fx-cursor: hand;";
+        String inactiveStyle = "-fx-background-color: white; -fx-text-fill: #64748B; -fx-border-color: #CBD5E1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-font-size: 13; -fx-padding: 8 20; -fx-cursor: none;";
+        String activeStyle = "-fx-background-color: #185FA5; -fx-text-fill: white; -fx-background-radius: 999; -fx-font-size: 13; -fx-padding: 8 20; -fx-cursor: none;";
 
         List<Button> chips = List.of(chipSemua, chipSastra, chipSains, chipTeknologi, chipSejarah, chipBahasa);
         for (Button chip : chips) {
@@ -110,7 +116,7 @@ public class HomepageController {
         query.append(" ORDER BY judul ASC");
 
         try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query.toString())) {
+                PreparedStatement ps = conn.prepareStatement(query.toString())) {
 
             int idx = 1;
             if (!keyword.isEmpty()) {
@@ -126,16 +132,16 @@ public class HomepageController {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    bukuList.add(new String[]{
-                            rs.getString("idBuku"),      // 0
-                            rs.getString("isbn"),        // 1
-                            rs.getString("judul"),       // 2
-                            rs.getString("pengarang"),   // 3
-                            rs.getString("kategori"),    // 4
+                    bukuList.add(new String[] {
+                            rs.getString("idBuku"), // 0
+                            rs.getString("isbn"), // 1
+                            rs.getString("judul"), // 2
+                            rs.getString("pengarang"), // 3
+                            rs.getString("kategori"), // 4
                             String.valueOf(rs.getInt("tahunTerbit")), // 5
-                            String.valueOf(rs.getInt("halaman")),     // 6
-                            rs.getString("gambar"),      // 7
-                            rs.getString("status")       // 8
+                            String.valueOf(rs.getInt("halaman")), // 6
+                            rs.getString("gambar"), // 7
+                            rs.getString("status") // 8
                     });
                 }
             }
@@ -158,13 +164,13 @@ public class HomepageController {
     }
 
     private VBox buatKartuBuku(String[] buku) {
-        String isbn        = buku[1];
-        String judul       = buku[2];
-        String pengarang   = buku[3];
-        String kategori    = buku[4];
-        String tahun       = buku[5];
-        String gambarPath  = buku[7];
-        String dbStatus    = buku[8];
+        String isbn = buku[1];
+        String judul = buku[2];
+        String pengarang = buku[3];
+        String kategori = buku[4];
+        String tahun = buku[5];
+        String gambarPath = buku[7];
+        String dbStatus = buku[8];
 
         boolean tersedia = "Tersedia".equalsIgnoreCase(dbStatus);
         String labelStatusTampil = tersedia ? "Tersedia" : "Tidak Tersedia";
@@ -172,7 +178,8 @@ public class HomepageController {
         VBox card = new VBox(0);
         card.setPrefWidth(175);
         card.setMaxWidth(175);
-        card.setStyle("-fx-background-color: white; -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 6, 0, 0, 2);");
+        card.setStyle(
+                "-fx-background-color: white; -fx-border-color: #E2E8F0; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: none; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 6, 0, 0, 2);");
 
         StackPane cover = new StackPane();
         cover.setPrefHeight(250);
@@ -187,8 +194,10 @@ public class HomepageController {
                 Region imgRegion = new Region();
                 imgRegion.setPrefSize(175, 250);
 
-                BackgroundSize bgSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true);
-                BackgroundImage bgImg = new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, bgSize);
+                BackgroundSize bgSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false,
+                        false, true);
+                BackgroundImage bgImg = new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER, bgSize);
                 imgRegion.setBackground(new Background(bgImg));
 
                 Rectangle clip = new Rectangle(175, 250);
@@ -229,7 +238,8 @@ public class HomepageController {
         VBox.setMargin(bottom, new Insets(4, 0, 0, 0));
 
         Label lblKat = new Label(singkatKategori(kategori));
-        lblKat.setStyle("-fx-background-color: #EFF6FF; -fx-text-fill: #1D4ED8; -fx-font-size: 10; -fx-background-radius: 999; -fx-padding: 2 8;");
+        lblKat.setStyle(
+                "-fx-background-color: #EFF6FF; -fx-text-fill: #1D4ED8; -fx-font-size: 10; -fx-background-radius: 999; -fx-padding: 2 8;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -242,36 +252,40 @@ public class HomepageController {
         info.getChildren().addAll(lblJudul, lblPengarang, lblIsbn, bottom);
         card.getChildren().addAll(cover, info);
 
-        card.setOnMouseEntered(e -> card.setStyle(card.getStyle().replace("-fx-border-color: #E2E8F0", "-fx-border-color: #93C5FD")));
-        card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-border-color: #93C5FD", "-fx-border-color: #E2E8F0")));
+        card.setOnMouseEntered(
+                e -> card.setStyle(card.getStyle().replace("-fx-border-color: #E2E8F0", "-fx-border-color: #93C5FD")));
+        card.setOnMouseExited(
+                e -> card.setStyle(card.getStyle().replace("-fx-border-color: #93C5FD", "-fx-border-color: #E2E8F0")));
 
         return card;
     }
 
     private String coverColor(String kategori) {
-        if (kategori == null) return "#F1F5F9";
+        if (kategori == null)
+            return "#F1F5F9";
         return switch (kategori) {
-            case "Sastra"                        -> "#FFF7ED";
-            case "Ilmu Murni / Sains"            -> "#F0FDF4";
-            case "Teknologi / Ilmu Terapan"      -> "#EFF6FF";
-            case "Sejarah & Geografi"            -> "#FFFBEB";
-            case "Bahasa"                        -> "#FDF4FF";
-            case "Ilmu Sosial"                   -> "#FFF1F2";
-            case "Karya Umum / Referensi"        -> "#F0F9FF";
-            case "Seni & Rekreasi"               -> "#FFF0F0";
-            default                              -> "#F8FAFC";
+            case "Sastra" -> "#FFF7ED";
+            case "Ilmu Murni / Sains" -> "#F0FDF4";
+            case "Teknologi / Ilmu Terapan" -> "#EFF6FF";
+            case "Sejarah & Geografi" -> "#FFFBEB";
+            case "Bahasa" -> "#FDF4FF";
+            case "Ilmu Sosial" -> "#FFF1F2";
+            case "Karya Umum / Referensi" -> "#F0F9FF";
+            case "Seni & Rekreasi" -> "#FFF0F0";
+            default -> "#F8FAFC";
         };
     }
 
     private String singkatKategori(String kategori) {
-        if (kategori == null) return "Lainnya";
+        if (kategori == null)
+            return "Lainnya";
         return switch (kategori) {
-            case "Ilmu Murni / Sains"       -> "Sains";
+            case "Ilmu Murni / Sains" -> "Sains";
             case "Teknologi / Ilmu Terapan" -> "Teknologi";
-            case "Sejarah & Geografi"       -> "Sejarah";
-            case "Karya Umum / Referensi"   -> "Referensi";
-            case "Seni & Rekreasi"          -> "Seni";
-            default                         -> kategori;
+            case "Sejarah & Geografi" -> "Sejarah";
+            case "Karya Umum / Referensi" -> "Referensi";
+            case "Seni & Rekreasi" -> "Seni";
+            default -> kategori;
         };
     }
 
