@@ -15,6 +15,9 @@ import java.sql.*;
 
 public class LoginController {
 
+    private final id.ac.ukdw.rplbo.wacanalibrary.dao.PegawaiDao pegawaiDao = new id.ac.ukdw.rplbo.wacanalibrary.dao.impl.PegawaiDaoImpl();
+    private final id.ac.ukdw.rplbo.wacanalibrary.dao.AnggotaDao anggotaDao = new id.ac.ukdw.rplbo.wacanalibrary.dao.impl.AnggotaDaoImpl();
+
     @FXML private TextField txtUsername; // Digunakan sebagai NIM atau Username Admin
     @FXML private PasswordField txtPassword;
     @FXML private Label lblError;
@@ -29,13 +32,13 @@ public class LoginController {
             return;
         }
 
-        // 1. Validasi Admin (Langsung masuk tanpa session)
+        // 1. Validasi Admin
         if (validasiAdmin(inputId, password)) {
             bukaDashboard("/fxml/MainLayout.fxml", "Wacana Library - Dashboard Operasional");
             return;
         }
 
-        // 2. Validasi Anggota berdasarkan NIM
+        // 2. Validasi Anggota berdasarkan NIM/NIDN/NIS
         if (validasiAnggota(inputId, password)) {
             bukaDashboard("/fxml/AnggotaMainLayout.fxml", "Wacana Library - Portal Anggota");
             return;
@@ -45,39 +48,19 @@ public class LoginController {
     }
 
     private boolean validasiAdmin(String username, String password) {
-        String query = "SELECT 1 FROM Pegawai WHERE username = ? AND password = ?";
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, username);
-            ps.setString(2, password);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        id.ac.ukdw.rplbo.wacanalibrary.models.Pegawai pegawai = pegawaiDao.getPegawaiByUsernameAndPassword(username, password);
+        return pegawai != null;
     }
 
     private boolean validasiAnggota(String inputId, String password) {
-        // Hapus "OR username = ?" menjadi hanya cek NIM
-        String query = "SELECT idAnggota, namaLengkap, status FROM Anggota WHERE nim = ? AND password = ?";
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, inputId);
-            ps.setString(2, password);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    if (rs.getString("status").equalsIgnoreCase("Tidak Aktif")) {
-                        tampilkanError("Akun anggota Anda sedang dinonaktifkan.");
-                        return false;
-                    }
-                    AnggotaSession.setAnggota(rs.getString("idAnggota"), rs.getString("namaLengkap"));
-                    return true;
-                }
+        id.ac.ukdw.rplbo.wacanalibrary.models.Anggota anggota = anggotaDao.getAnggotaByNimAndPassword(inputId, password);
+        if (anggota != null) {
+            if (anggota.statusProperty().get().equalsIgnoreCase("Tidak Aktif")) {
+                tampilkanError("Akun anggota Anda sedang dinonaktifkan.");
+                return false;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            AnggotaSession.setAnggota(anggota.idAnggotaProperty().get(), anggota.namaLengkapProperty().get());
+            return true;
         }
         return false;
     }
